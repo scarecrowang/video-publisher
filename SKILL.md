@@ -601,7 +601,9 @@ ls -la out/<slug>/<slug>.mp4 2>/dev/null && echo "渲染完成" || echo "渲染�
 |---|---|---|---|
 | macOS | `say` 命令 | ✅ 零配置，直接可用 | 系统自带 |
 | Windows | PowerShell `System.Speech` | ✅ 零配置，直接可用 | 系统自带 |
-| Linux | `espeak-ng` | ❌ 需 `sudo apt install espeak-ng` | 但只需安装一次 |
+| Linux (Debian/Ubuntu) | `espeak-ng` | ❌ `sudo apt install espeak-ng -y` | 一次安装，后续零配置 |
+| Linux (CentOS/RHEL) | `espeak-ng` | ❌ `sudo yum install espeak-ng -y` 或 `sudo dnf install espeak-ng -y` | 一次安装，后续零配置 |
+| Linux (Arch) | `espeak-ng` | ❌ `sudo pacman -S espeak-ng --noconfirm` | 一次安装，后续零配置 |
 
 > 默认 TTS_PROVIDER 设为 `auto`，脚本会自动检测平台并选择对应的免费 TTS。
 > 想用真人感配音，在 `.env` 中填入 `TTS_PROVIDER=volcano` 及相关 Key 即可。
