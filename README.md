@@ -4,74 +4,48 @@
 
 An AI Agent Skill that turns any **topic** into a **9:16 vertical short video** — research, script writing, storyboard, B-roll, AI voiceover, and rendering, all in one pipeline.
 
-## Two-Phase Architecture
-
-### Phase 1: Script Writing (Zero Dependencies)
-- **No Node.js, no Remotion, no API keys required**
-- Pure Agent-driven: research → fact-check → write structured script
-- 5 content types: Case Study / Science Pop / Opinion / Tutorial / Custom
-- Output: `scripts/<slug>-视频文稿.md` (11-part structured script)
-
-### Phase 2: Video Rendering (Requires Remotion Project)
-- Converts script → storyboard → renders MP4
-- Automatic B-roll download (Pexels)
-- AI voiceover + karaoke subtitles
-- Output: `out/<slug>/<slug>.mp4` + cover image
-
-## Quick Start
-
-### Install the Skill
-
-This Skill is a standard AI Agent skill in SKILL.md format. Install it by placing the `video-publisher` directory into your Agent's skills directory (e.g., `~/.workbuddy/skills/` for WorkBuddy, or your Claude Code / Codex skills path).
-
-### Use It
+## Architecture
 
 ```
-User: "写一期国家电网光明大模型的案例视频"
-→ AI: 确定内容类型 → 全网搜索 → 事实核查 → 写口播稿 → 交付确认
-
-User: "写一期XX，自动出片"
-→ AI: 写稿 → 自动分镜 → 渲染出片
+User topic / Scheduled trigger
+    │
+    ▼
+┌─ Global Dedup Guard ────────────────────────┐
+│  Read history → dedup check → if unique → go│
+│  If duplicate → reject/adjust/switch topic  │
+└──────────────────────────────────────────────┘
+    │
+    ▼
+┌─ Phase 1: Script Writing (Zero Deps) ─────┐
+│  Pure Agent: research → fact-check → write │
+│  5 content types, controlled word count    │
+│  Output: scripts/<slug>-视频文稿.md         │
+└──────────────────────────────────────────────┘
+    │
+    ▼
+┌─ Phase 2: Video Rendering ─────────────────┐
+│  Script → storyboard → B-roll → TTS → mp4  │
+│  Output: out/<slug>/<slug>.mp4 + cover     │
+└──────────────────────────────────────────────┘
 ```
 
-## Content Types
+## Core Features
 
-| Type | Structure | Use Case |
-|---|---|---|
-| Case Study | 3-Hook opening + 6-part body | Enterprise/tech case analysis |
-| Science Pop | Suspense opening + 4-part body | Knowledge explanation |
-| Opinion | Opinion-first opening + 3-part argument | Commentary, analysis |
-| Tutorial | Problem opening + step-by-step body | How-to, guide |
-| Custom | Flexible | User-defined structure |
+### Global Dedup Guard (All Triggers)
+Whether the user manually enters a topic, describes it in natural language, or a scheduled task fires — **dedup check runs before every script writing**:
+- Auto-maintains `scripts/.publish-history.json`
+- 5 dimensions: exact match, keyword overlap, entity overlap, semantic similarity, angle duplication
+- Case study rules: same enterprise → 30-day gap, same track → 7-day gap
+- On duplicate: auto-suggest alternative angles
 
-## Free TTS — No API Key Needed
+### Scheduled Mode: Dual Trigger
 
-| Platform | Engine | Config |
-|---|---|---|
-| macOS | `say` command | Zero config |
-| Windows | PowerShell `System.Speech` | Zero config |
-| Linux | `espeak-ng` | `sudo apt install espeak-ng` |
+| Trigger | Description |
+|---|---|
+| **A. Agent's own automation system** | WorkBuddy / Claude Code / Codex — just say "Run one video every day at 8 AM" and the Agent creates the scheduled task |
+| **B. Natural language description** | Any Agent platform — say "Help me publish one video daily" and the Agent handles it conversationally |
 
-Default `TTS_PROVIDER=auto` auto-detects your platform. For premium human-like Chinese voiceover, set `TTS_PROVIDER=volcano` in `.env`.
-
-## Prerequisites for Video Rendering
-
-To use Phase 2 (video rendering), you need:
-
-1. **Remotion project**: `git clone https://github.com/scarecrowang/remotion-video-publisher.git`
-2. **Node.js** ≥ 18
-3. **(Optional) Pexels API Key**: https://www.pexels.com/api/ — for B-roll footage
-
-## Daily Scheduled Mode: One Video Per Day
-
-Supports daily scheduled tasks that auto-generate a new video every day:
-
-- **Topic Pool** — Pre-seeded topics, picked one per run
-- **History + Dedup** — Auto-records all generated content, ensures each day's topic is different
-- **Auto-refill** — Automatically searches for new topics when the pool runs low
-- **Cross-platform** — Works with WorkBuddy Automation / crontab / Windows Task Scheduler
-
-> Just say "Run one video every day at 8 AM" and the Agent will configure the scheduled task for you.
+> Both modes share the same history file and topic pool for global dedup consistency.
 
 ## Repository Structure
 
