@@ -2,7 +2,7 @@
 
 > English version: [README.md](./README.md)
 
-一个 WorkBuddy Skill，输入一个 **topic**，自动完成：研究素材 → 事实核查 → 写口播稿 → 拆分镜稿 → 下载 B-roll → AI 配音 → 渲染出片。
+一个 AI Agent Skill，输入一个 **topic**，自动完成：研究素材 → 事实核查 → 写口播稿 → 拆分镜稿 → 下载 B-roll → AI 配音 → 渲染出片。
 
 ## 两阶段架构
 
@@ -22,7 +22,7 @@
 
 ### 安装本 Skill
 
-本 Skill 为 **WorkBuddy** 设计。将 `video-publisher` 放在 `~/.workbuddy/skills/` 目录下即可。
+本 Skill 是标准的 AI Agent Skill（SKILL.md 格式）。将 `video-publisher` 目录放入你的 Agent 技能目录即可（如 WorkBuddy 的 `~/.workbuddy/skills/`、Claude Code 或 Codex 的技能路径）。
 
 ### 使用示例
 

@@ -2,7 +2,7 @@
 
 > 🇨🇳 中文版请见 [README-ZH.md](./README-ZH.md)
 
-A WorkBuddy Skill that turns any **topic** into a **9:16 vertical short video** — research, script writing, storyboard, B-roll, AI voiceover, and rendering, all in one pipeline.
+An AI Agent Skill that turns any **topic** into a **9:16 vertical short video** — research, script writing, storyboard, B-roll, AI voiceover, and rendering, all in one pipeline.
 
 ## Two-Phase Architecture
 
@@ -22,7 +22,7 @@ A WorkBuddy Skill that turns any **topic** into a **9:16 vertical short video** 
 
 ### Install the Skill
 
-This Skill is designed for **WorkBuddy** (a conversational AI IDE). Install it by placing the `video-publisher` directory under `~/.workbuddy/skills/`.
+This Skill is a standard AI Agent skill in SKILL.md format. Install it by placing the `video-publisher` directory into your Agent's skills directory (e.g., `~/.workbuddy/skills/` for WorkBuddy, or your Claude Code / Codex skills path).
 
 ### Use It
 
