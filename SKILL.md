@@ -430,9 +430,9 @@ cd remotion-video-publisher
 
 **注意：** 如果目标目录已存在（说明之前克隆过），则跳过 clone，直接进入该目录执行 `git pull` 拉取最新代码。
 
-### 第 7 步：检测并安装 ffmpeg（自动，解决音频无声问题）
+### 第 7 步：检测并安装 ffmpeg（自动，全平台必装）
 
-进入 remotion 项目目录后，必须先检测 ffmpeg 是否已安装。**Windows 系统上 remotion 依赖 ffmpeg 处理音频，没有 ffmpeg 会导致视频无声。**
+进入 remotion 项目目录后，**必须先检测 ffmpeg 是否已安装**。Remotion 依赖 ffmpeg 处理音频渲染和视频编码，**所有平台（Windows / macOS / Linux）没有 ffmpeg 都会导致视频问题**（Windows 无声、macOS/Linux 可能渲染失败或缺少音频流）。
 
 **检测方法：**
 
@@ -444,16 +444,19 @@ ffmpeg -version
 
 | 平台 | 安装命令 | 说明 |
 |---|---|---|
-| **macOS** | `brew install ffmpeg` | 前提是已安装 Homebrew；若未安装先执行 `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"` |
+| **macOS（有 Homebrew）** | `brew install ffmpeg` | 最推荐的方式 |
+| **macOS（无 Homebrew）** | 方案 A：`/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"` 先装 Homebrew，再 `brew install ffmpeg` | 推荐，后续升级也方便 |
+| | 方案 B：从 https://ffmpeg.org/download.html 下载 macOS 静态构建版，解压后添加到 PATH | 无需包管理器 |
+| | 方案 C：`sudo port install ffmpeg`（已安装 MacPorts 时） | |
 | **Windows** | `winget install FFmpeg` | Windows 内置 winget 包管理器；或从 https://ffmpeg.org/download.html 下载 |
 | **Windows 备选** | `choco install ffmpeg` | 如果安装了 Chocolatey |
 | **Linux (Debian/Ubuntu)** | `sudo apt install ffmpeg -y` | |
-| **Linux (CentOS/RHEL)** | `sudo yum install ffmpeg -y` | 或 `sudo dnf install ffmpeg -y` |
+| **Linux (CentOS/RHEL)** | `sudo yum install ffmpeg -y` 或 `sudo dnf install ffmpeg -y` | |
 | **Linux (Arch)** | `sudo pacman -S ffmpeg --noconfirm` | |
 
 > **安装后验证：** 再次执行 `ffmpeg -version`，确认安装成功后才继续下一步。
-> **注意：** 安装 ffmpeg 可能需要用户确认密码（macOS brew / Linux sudo），Agent 需要引导用户完成操作。
-> **特别提醒 Windows 用户：** 装完 ffmpeg 后可能需要重启终端或重新登录，确保 `ffmpeg` 命令在 PATH 中可用。如果 `winget` 安装后仍找不到命令，引导用户从 https://ffmpeg.org/download.html 手动下载并添加到 PATH。
+> **注意：** 安装 ffmpeg 可能需要用户确认密码（macOS / Linux sudo），Agent 需要引导用户完成操作。
+> **Windows 特别提醒：** 装完 ffmpeg 后可能需要重启终端或重新登录，确保 `ffmpeg` 命令在 PATH 中可用。如果 `winget` 安装后仍找不到命令，引导用户从 https://ffmpeg.org/download.html 手动下载并添加到 PATH。
 
 ### 第 8 步：自动部署（npm run setup）
 
