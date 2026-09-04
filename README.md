@@ -62,6 +62,17 @@ To use Phase 2 (video rendering), you need:
 2. **Node.js** ≥ 18
 3. **(Optional) Pexels API Key**: https://www.pexels.com/api/ — for B-roll footage
 
+## Daily Scheduled Mode: One Video Per Day
+
+Supports daily scheduled tasks that auto-generate a new video every day:
+
+- **Topic Pool** — Pre-seeded topics, picked one per run
+- **History + Dedup** — Auto-records all generated content, ensures each day's topic is different
+- **Auto-refill** — Automatically searches for new topics when the pool runs low
+- **Cross-platform** — Works with WorkBuddy Automation / crontab / Windows Task Scheduler
+
+> Just say "Run one video every day at 8 AM" and the Agent will configure the scheduled task for you.
+
 ## Repository Structure
 
 ```
