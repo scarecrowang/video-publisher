@@ -447,3 +447,8 @@ remotion-video-publisher/
 - `references/script-template.md` — 口播稿模板（5 种类型，字数控制，时长估算）
 - `references/md-grammar.md` — 分镜稿 md 语法（head/points/data/stats/theory/out 卡型）
 - `references/type-templates.md` — 视频题材模板（counseling/energy/warm 的 palette、B-roll 基调、常用卡序列）
+
+## 本 Skill 源码
+
+- GitHub 仓库：[scarecrowang/video-publisher](https://github.com/scarecrowang/video-publisher)
+- 安装：将本仓库克隆或下载到 `~/.workbuddy/skills/video-publisher/` 即可
