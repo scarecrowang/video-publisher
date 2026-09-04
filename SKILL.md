@@ -365,21 +365,68 @@ setup 脚本会自动完成：
 
 **分镜稿存放位置：** remotion 项目的 `content/<slug>.md`
 
-### 第 9 步：一键出片
+### 第 9 步：一键出片（后台运行，避免超时）
 
-在 remotion 项目根目录运行：
+渲染视频是耗时操作（3-5 分钟口播稿通常需要 5-15 分钟渲染），**必须在后台运行**，避免被 Agent 的超时限制中断。
+
+**规则：**
+
+1. 进入 remotion 项目根目录
+2. 使用后台进程启动渲染，并将输出重定向到日志文件
+3. 立即返回控制权，定期检查渲染进度
+4. 渲染完成后自动进入质检环节
+
+**跨平台后台运行方式：**
+
+| 平台 | 后台运行命令 | 日志文件 |
+|---|---|---|
+| macOS / Linux | `nohup node scripts/case-publish.mjs <slug> > render-<slug>.log 2>&1 &` | `render-<slug>.log` |
+| Windows | `start /B node scripts/case-publish.mjs <slug> > render-<slug>.log 2>&1` | `render-<slug>.log` |
+
+**后台渲染流程：**
 
 ```bash
-node scripts/case-publish.mjs <slug>
+# 进入 remotion 项目目录
+cd <remotion-project-path>
+
+# 启动后台渲染（所有平台通用写法）
+# 将输出写入日志文件，进程在后台运行，不受超时限制
+node scripts/case-publish.mjs <slug> > render-<slug>.log 2>&1 &
+echo "渲染进程已启动，PID: $!"
 ```
 
-等价五步：解析分镜稿 → 下载 B-roll(Pexels) → 生成配音+字幕时间轴 → Remotion 渲染 mp4 → 抽封面。
+**进度检测方式：**
 
-支持参数：
-- `--no-tts`：跳过配音（稿子没改只重渲染用）
-- `--no-broll`：跳过 B-roll 下载（离线用）
-- `--no-cover`：不抽封面
-- `--frame=N`：指定封面帧（默认 820）
+```bash
+# 方式 1：检查进程是否仍在运行
+# macOS/Linux:
+ps aux | grep "case-publish.mjs <slug>" | grep -v grep
+# Windows:
+tasklist | findstr node
+
+# 方式 2：查看日志文件最新内容
+tail -5 render-<slug>.log
+
+# 方式 3：检查输出文件是否已生成
+ls -la out/<slug>/<slug>.mp4 2>/dev/null && echo "渲染完成" || echo "渲染中..."
+```
+
+**推荐做法（Agent 循环检测）：**
+
+```
+1. 启动后台渲染进程
+2. 告知用户"渲染已启动，预计需要 X 分钟，请稍候"
+3. 每 30 秒检测一次：
+   a. 检查 render-<slug>.log 是否有新进度输出
+   b. 检查 out/<slug>/<slug>.mp4 是否已生成
+4. 检测到文件生成后，进入质检环节
+5. 如果超过 30 分钟仍未完成，检查日志是否有错误
+```
+
+**补充说明：**
+- `case-publish.mjs` 内部会依次执行：解析分镜稿 → 下载 B-roll → 生成配音 → 渲染 → 抽封面，每步都有控制台输出，日志中可追踪进度
+- 渲染完成后，日志最后一行会显示"完成 ✅"
+- 支持参数：`--no-tts`、`--no-broll`、`--no-cover`、`--frame=N`
 
 ### 第 10 步：质检 + 交付
 
