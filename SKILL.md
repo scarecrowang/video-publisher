@@ -451,4 +451,4 @@ remotion-video-publisher/
 ## 本 Skill 源码
 
 - GitHub 仓库：[scarecrowang/video-publisher](https://github.com/scarecrowang/video-publisher)
-- 安装：将本仓库克隆或下载到 `~/.workbuddy/skills/video-publisher/` 即可
+- 安装：将本仓库克隆或下载到你的 Agent 技能目录下即可
