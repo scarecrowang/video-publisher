@@ -47,6 +47,14 @@ Whether the user manually enters a topic, describes it in natural language, or a
 
 > Both modes share the same history file and topic pool for global dedup consistency.
 
+### Auto ffmpeg Detection & Installation
+ffmpeg is required for audio processing in Remotion — **Windows users will get no audio without it**. The Agent automatically detects and installs ffmpeg:
+- **macOS**: `brew install ffmpeg`
+- **Windows**: `winget install FFmpeg`
+- **Linux**: `sudo apt install ffmpeg -y` (or yum/pacman)
+
+> See SKILL.md Step 7 for full details. No manual action needed.
+
 ## Repository Structure
 
 ```

@@ -73,7 +73,10 @@
 
 1. **Remotion 项目**：`git clone https://github.com/scarecrowang/remotion-video-publisher.git`
 2. **Node.js** ≥ 18
-3. **（可选）Pexels API Key**：https://www.pexels.com/api/ — 用于 B-roll 素材
+3. **ffmpeg**（自动检测安装，**Windows 必装否则音频无声**）
+4. **（可选）Pexels API Key**：https://www.pexels.com/api/ — 用于 B-roll 素材
+
+> Agent 会自动检测并安装 ffmpeg，无需手动操作。详见 SKILL.md 第 7 步。
 
 ## 仓库结构
 
