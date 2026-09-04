@@ -56,11 +56,12 @@ disable: false
 ┌─ 阶段 2：出片（自动部署 Remotion 项目）─────┐
 │  (5) 检测 git 环境（无则自动安装）            │
 │  (6) git clone remotion 项目                  │
-│  (7) npm run setup 自动部署                   │
-│  (8) 口播稿 → content/<slug>.md 分镜稿        │
-│  (9) 下载 B-roll 素材（Pexels）               │
-│  (10) 生成 AI 配音 + 字幕时间轴（TTS）        │
-│  (11) Remotion 渲染 mp4 + 抽封面              │
+│  (7) 检测 ffmpeg（无则自动安装，解决音频）    │
+│  (8) npm run setup 自动部署                   │
+│  (9) 口播稿 → content/<slug>.md 分镜稿        │
+│  (10) 下载 B-roll 素材（Pexels）              │
+│  (11) 生成 AI 配音 + 字幕时间轴（TTS）        │
+│  (12) Remotion 渲染 mp4 + 抽封面              │
 │  产出：out/<slug>/<slug>.mp4 + 封面          │
 └──────────────────────────────────────────────┘
 ```
@@ -429,7 +430,32 @@ cd remotion-video-publisher
 
 **注意：** 如果目标目录已存在（说明之前克隆过），则跳过 clone，直接进入该目录执行 `git pull` 拉取最新代码。
 
-### 第 7 步：自动部署（npm run setup）
+### 第 7 步：检测并安装 ffmpeg（自动，解决音频无声问题）
+
+进入 remotion 项目目录后，必须先检测 ffmpeg 是否已安装。**Windows 系统上 remotion 依赖 ffmpeg 处理音频，没有 ffmpeg 会导致视频无声。**
+
+**检测方法：**
+
+```bash
+ffmpeg -version
+```
+
+如果返回错误说明未安装，自动安装：
+
+| 平台 | 安装命令 | 说明 |
+|---|---|---|
+| **macOS** | `brew install ffmpeg` | 前提是已安装 Homebrew；若未安装先执行 `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"` |
+| **Windows** | `winget install FFmpeg` | Windows 内置 winget 包管理器；或从 https://ffmpeg.org/download.html 下载 |
+| **Windows 备选** | `choco install ffmpeg` | 如果安装了 Chocolatey |
+| **Linux (Debian/Ubuntu)** | `sudo apt install ffmpeg -y` | |
+| **Linux (CentOS/RHEL)** | `sudo yum install ffmpeg -y` | 或 `sudo dnf install ffmpeg -y` |
+| **Linux (Arch)** | `sudo pacman -S ffmpeg --noconfirm` | |
+
+> **安装后验证：** 再次执行 `ffmpeg -version`，确认安装成功后才继续下一步。
+> **注意：** 安装 ffmpeg 可能需要用户确认密码（macOS brew / Linux sudo），Agent 需要引导用户完成操作。
+> **特别提醒 Windows 用户：** 装完 ffmpeg 后可能需要重启终端或重新登录，确保 `ffmpeg` 命令在 PATH 中可用。如果 `winget` 安装后仍找不到命令，引导用户从 https://ffmpeg.org/download.html 手动下载并添加到 PATH。
+
+### 第 8 步：自动部署（npm run setup）
 
 进入 remotion 项目目录后，自动执行：
 
@@ -439,13 +465,13 @@ npm run setup
 
 setup 脚本会自动完成：
 - `npm install` 安装 Node.js 依赖
-- 检测 ffmpeg（可选，缺失时降级估算）
 - 检测/下载 Chromium（渲染引擎）
 - 创建 `.env` 模板文件（如果不存在）
 
+> **注意：** ffmpeg 已在第 7 步中自动安装，setup 脚本中的 ffmpeg 检测可以跳过。
 > **如果 npm run setup 执行失败：** 检查是否已安装 Node.js（`node -v`），如果未安装，提示用户从 https://nodejs.org 下载安装 Node.js 18+ 后重试。
 
-### 第 8 步：口播稿 → 分镜稿
+### 第 9 步：口播稿 → 分镜稿
 
 将阶段 1 产出的口播稿，按以下规则映射为 `content/<slug>.md` 分镜稿：
 
@@ -461,7 +487,7 @@ setup 脚本会自动完成：
 
 **分镜稿存放位置：** remotion 项目的 `content/<slug>.md`
 
-### 第 9 步：一键出片（后台运行，避免超时）
+### 第 10 步：一键出片（后台运行，避免超时）
 
 渲染视频是耗时操作（3-5 分钟口播稿通常需要 5-15 分钟渲染），**必须在后台运行**，避免被 Agent 的超时限制中断。
 
@@ -531,7 +557,7 @@ ls -la out/<slug>/<slug>.mp4 2>/dev/null && echo "渲染完成" || echo "渲染�
 - 渲染完成后，日志最后一行会显示"完成 ✅"
 - 支持参数：`--no-tts`、`--no-broll`、`--no-cover`、`--frame=N`
 
-### 第 10 步：质检 + 交付
+### 第 11 步：质检 + 交付
 
 - 检查 `out/<slug>/<slug>.mp4` 存在，确认大小
 - 抽 2-3 帧静帧核对：无内容被裁、字幕不交叠、配色符合题材
