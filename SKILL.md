@@ -44,12 +44,14 @@ disable: false
     │
     ▼ 用户确认后 / 或自动进入
     │
-┌─ 阶段 2：出片（需部署 Remotion 项目）───────┐
-│  (5) 检测/提示 remotion 项目                 │
-│  (6) 口播稿 → content/<slug>.md 分镜稿       │
-│  (7) 下载 B-roll 素材（Pexels）              │
-│  (8) 生成 AI 配音 + 字幕时间轴（TTS）        │
-│  (9) Remotion 渲染 mp4 + 抽封面              │
+┌─ 阶段 2：出片（自动部署 Remotion 项目）─────┐
+│  (5) 检测 git 环境（无则自动安装）            │
+│  (6) git clone remotion 项目                  │
+│  (7) npm run setup 自动部署                   │
+│  (8) 口播稿 → content/<slug>.md 分镜稿        │
+│  (9) 下载 B-roll 素材（Pexels）               │
+│  (10) 生成 AI 配音 + 字幕时间轴（TTS）        │
+│  (11) Remotion 渲染 mp4 + 抽封面              │
 │  产出：out/<slug>/<slug>.mp4 + 封面          │
 └──────────────────────────────────────────────┘
 ```
@@ -298,22 +300,56 @@ Hook ③ 确立主题 + 与观众的相关性
 
 ---
 
-## 阶段 2：出片（需部署 Remotion 项目）
+## 阶段 2：出片（自动部署 Remotion 项目）
 
-### 前置条件检测
+### 第 5 步：检测并安装 git（自动）
 
-在进入阶段 2 之前，检查以下条件：
+进入阶段 2 时，首先检查系统是否已安装 git：
 
-1. **remotion 项目是否存在？** 检查用户是否已提供 remotion 项目路径，或搜索 `**/scripts/case-publish.mjs` 自动定位
-2. **项目已部署？** 检查 `package.json`、`node_modules`、`.env` 等关键文件
-3. **API Key 已配置？** 检查 `PEXELS_API_KEY` 和 `VOLCANO_API_KEY`
+**检测方法：** 尝试执行 `git --version`，如果返回错误说明未安装。
 
-条件不满足时：
-- 项目不存在 → 提示用户先 `git clone https://github.com/scarecrowang/remotion-video-publisher.git`
-- 项目未部署 → 提示运行 `npm run setup`
-- Key 未配置 → 提示编辑 `.env` 文件
+**各平台自动安装 git 指引：**
 
-### 第 7 步：口播稿 → 分镜稿
+| 平台 | 安装命令 | 说明 |
+|---|---|---|
+| macOS | `xcode-select --install` | 会弹出安装弹窗，用户确认后自动安装 Command Line Tools（含 git） |
+| Windows | `winget install Git.Git` 或从 https://git-scm.com 下载 | winget 是 Windows 内置包管理器，无需额外安装 |
+| Linux (Debian/Ubuntu) | `sudo apt install git -y` | |
+| Linux (CentOS/RHEL) | `sudo yum install git -y` | |
+| Linux (Arch) | `sudo pacman -S git --noconfirm` | |
+
+> **安装后验证：** 再次执行 `git --version`，确认安装成功后才继续下一步。
+> **注意：** 安装 git 可能需要用户确认密码（macOS 弹窗 / Linux sudo），Agent 需要引导用户完成操作。
+
+### 第 6 步：git clone remotion 项目（自动）
+
+git 就绪后，自动将 remotion 渲染引擎克隆到本地：
+
+```bash
+# 克隆到用户指定的目录，或默认克隆到当前工作目录
+git clone https://github.com/scarecrowang/remotion-video-publisher.git
+cd remotion-video-publisher
+```
+
+**注意：** 如果目标目录已存在（说明之前克隆过），则跳过 clone，直接进入该目录执行 `git pull` 拉取最新代码。
+
+### 第 7 步：自动部署（npm run setup）
+
+进入 remotion 项目目录后，自动执行：
+
+```bash
+npm run setup
+```
+
+setup 脚本会自动完成：
+- `npm install` 安装 Node.js 依赖
+- 检测 ffmpeg（可选，缺失时降级估算）
+- 检测/下载 Chromium（渲染引擎）
+- 创建 `.env` 模板文件（如果不存在）
+
+> **如果 npm run setup 执行失败：** 检查是否已安装 Node.js（`node -v`），如果未安装，提示用户从 https://nodejs.org 下载安装 Node.js 18+ 后重试。
+
+### 第 8 步：口播稿 → 分镜稿
 
 将阶段 1 产出的口播稿，按以下规则映射为 `content/<slug>.md` 分镜稿：
 
@@ -329,7 +365,7 @@ Hook ③ 确立主题 + 与观众的相关性
 
 **分镜稿存放位置：** remotion 项目的 `content/<slug>.md`
 
-### 第 8 步：一键出片
+### 第 9 步：一键出片
 
 在 remotion 项目根目录运行：
 
@@ -345,7 +381,7 @@ node scripts/case-publish.mjs <slug>
 - `--no-cover`：不抽封面
 - `--frame=N`：指定封面帧（默认 820）
 
-### 第 9 步：质检 + 交付
+### 第 10 步：质检 + 交付
 
 - 检查 `out/<slug>/<slug>.mp4` 存在，确认大小
 - 抽 2-3 帧静帧核对：无内容被裁、字幕不交叠、配色符合题材
@@ -363,20 +399,14 @@ node scripts/case-publish.mjs <slug>
 - 不需要申请 API Key
 - 不需要 pip install
 
-### 全流程出片（需额外部署 Remotion 项目）
+### 全流程出片（自动部署 Remotion 项目）
 
-如果要用**阶段 2（出片）**，需要额外部署 Remotion 渲染引擎：
+如果要用**阶段 2（出片）**，不需要用户手动操作，Agent 会自动完成：
 
-```bash
-# 1. 从 GitHub 拉取项目
-git clone https://github.com/scarecrowang/remotion-video-publisher.git
-cd remotion-video-publisher
-
-# 2. 一键安装 + 环境检测
-npm run setup
-
-# 3. 配置 TTS（三选一，推荐方案 A）
-```
+1. 检测 git 环境 → 无则自动安装
+2. `git clone https://github.com/scarecrowang/remotion-video-publisher.git`
+3. `npm run setup` 自动部署
+4. 配置 TTS 和 Pexels（可选，默认免费 TTS 零配置）
 
 #### TTS 配音方案（三选一）
 
@@ -399,18 +429,12 @@ npm run setup
 
 #### B-roll 素材配置
 
-```bash
-# Pexels API Key（免费注册，用于 B-roll 素材下载）
-# 在 .env 中填入：
-# PEXELS_API_KEY = 你的 key
-```
+Pexels API Key（免费注册，用于 B-roll 素材下载）：
+- 注册：https://www.pexels.com/api/
+- 在 remotion 项目的 `.env` 中填入 `PEXELS_API_KEY = 你的 key`
+- **注意：** 如果未配置 Pexels Key，出片时会自动加 `--no-broll` 参数跳过 B-roll，只渲染纯画面 + 配音 + 字幕，不影响出片。
 
-#### 告诉本 Skill 你的项目路径
-
-```bash
-# 在对话中说明即可，例如：
-# "我的 remotion 项目在 /Users/xxx/remotion-video-publisher"
-```
+> **以上所有步骤 Agent 会自动完成，用户只需在对话中确认即可。**
 
 ---
 
@@ -420,7 +444,8 @@ npm run setup
 - **用户可控制出片时机**：说"自动出片" → 全自动；说"写稿" → 先出稿，确认后再出片
 - **字数控制**：案例型 1150–1200 字，科普型 1000–1200 字，观点型/教程型 900–1100 字
 - **信源可追溯**：每条数据标注出处，单一信源明示风险
-- **出片阶段需额外部署**：阶段 2 需要 Remotion 项目，但阶段 1 完全独立
+- **出片阶段自动部署**：阶段 2 自动检测 git → clone remotion 项目 → npm run setup，用户零手动操作
+- **Pexels Key 可选**：未配置时自动加 `--no-broll` 跳过 B-roll，不影响出片
 
 ## 输出示例
 
@@ -451,4 +476,3 @@ remotion-video-publisher/
 ## 本 Skill 源码
 
 - GitHub 仓库：[scarecrowang/video-publisher](https://github.com/scarecrowang/video-publisher)
-- 安装：将本仓库克隆或下载到你的 Agent 技能目录下即可
