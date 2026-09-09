@@ -1,6 +1,6 @@
 ---
 name: video-publisher
-description: "从 topic 到竖屏短视频的一站式全流程 Skill。支持：根据 topic 全网搜索素材 → 事实核查 → 按模板写口播稿 → 自动拆成分镜稿 → 下载 B-roll → AI 配音 → Remotion 渲染出片。用户可选择：仅出稿（人工确认后出片）或 全自动出片。触发词：写一期视频、生成一条XX的视频、出一期XX的口播稿并渲染出片、帮我做一期XX案例的视频。"
+description: "当用户需要从 topic 生成竖屏短视频、写口播稿、渲染视频时使用。支持：根据 topic 全网搜索素材 → 事实核查 → 按模板写口播稿 → 自动拆成分镜稿 → 下载 B-roll → AI 配音 → Remotion 渲染出片。用户可选择：仅出稿（人工确认后出片）或 全自动出片。也支持定时任务/每日一期模式：用户说'每天自动出一期视频'、'每天定时跑一期'、'定时任务'、'每日更新'时使用，自动从选题储备池选不重复的选题并出片。触发词：写一期视频、生成一条XX的视频、出一期XX的口播稿并渲染出片、帮我做一期XX案例的视频、每天出一期、每日视频、定时任务、scheduled video、daily video。"
 license: UNLICENSED
 agent_created: true
 disable: false
@@ -621,6 +621,19 @@ ls -la out/<slug>/<slug>.mp4 2>/dev/null && echo "渲染完成" || echo "渲染�
 
 ## 安装说明
 
+### 正确安装到技能目录（关键，避免检索不到）
+
+技能必须安装到 Agent 约定的**技能目录**下，否则检索系统（search_capabilities / 可用能力列表）扫描不到。各平台/Agent 的标准技能目录：
+
+| Agent | 目录 | 说明 |
+|---|---|---|
+| **WorkBuddy** | macOS/Linux: `~/.workbuddy/skills/video-publisher/`<br>Windows: `%USERPROFILE%\.workbuddy\skills\video-publisher\` | 放入后重启客户端让索引刷新 |
+| **Claude Code** | `~/.claude/skills/video-publisher/` | 或项目级 `.claude/skills/` |
+| **Codex** | `~/.codex/skills/video-publisher/` | |
+| **通用安装** | 从 GitHub 克隆：`git clone https://github.com/scarecrowang/video-publisher.git`，将仓库内 `video-publisher/` 目录（含 `SKILL.md` 与 `references/`）整体拷贝到上述技能目录 | 不要只复制 SKILL.md 单文件 |
+
+> **安装自检：** 安装后执行 `ls <技能目录>/video-publisher/SKILL.md` 确认存在。若 Agent 支持技能列表命令（如 WorkBuddy 左侧技能面板），确认 `video-publisher` 出现在列表中。如果已安装但列表中没有 → 重启 Agent 客户端让索引重新加载。
+
 ### 写稿（零依赖，装 Skill 即用）
 
 本 Skill 的**阶段 1（写稿）** 不依赖任何外部项目，纯 Agent 驱动，装好 Skill 就能用：
@@ -717,6 +730,8 @@ Pexels API Key（免费注册，用于 B-roll 素材下载）：
 
 > **两种方式共享同一个 `scripts/.publish-history.json` 和 `scripts/topic-pool.txt`，确保历史记录和去重判断全局一致。**
 
+> **⚡ 重要：定时任务的执行 prompt 必须自包含**（写明技能名、内容类型、赛道、技能定位方式、自愈流程），因为定时任务通常在**独立的新会话**中执行，没有上一轮对话的上下文。技能可能已安装但未被本次会话的检索索引命中——这是正常现象，按下方"自愈流程"直接读 SKILL.md 文件即可，不要依赖索引。
+
 ---
 
 ### 方式 A：利用 Agent 自身自动化系统
@@ -730,11 +745,43 @@ Pexels API Key（免费注册，用于 B-roll 素材下载）：
 3. 创建自动化定时任务：
    - 名称：`video-publisher-每日一期`
    - 频率：每天，用户指定的时间
-   - 执行 prompt：`用 video-publisher 生成一期视频，内容类型：案例型，赛道：心理疏导，自动出片。`
+   - 执行 prompt：**使用 `video-publisher` Skill（视频发布/口播稿/每日一期）**。请先检查本地技能目录（WorkBuddy: `~/.workbuddy/skills/`；Claude Code: `~/.claude/skills/`；Codex: `~/.codex/skills/`，若不存在则全盘搜索 `SKILL.md`），确认 `video-publisher` 已安装并可直接读取其 `SKILL.md` 内容（不要依赖技能检索/索引，直接按文件路径读取）。然后按该 Skill 的"定时任务模式：每日一期"流程执行：读取历史记录 `scripts/.publish-history.json` 判断去重 → 从选题储备池 `scripts/topic-pool.txt` 选一个不重复的选题 → 写口播稿 → 自动出片（渲染 mp4 + 封面）。内容类型：案例型，赛道：心理疏导，自动出片，全流程自主完成，输出视频后用 present_files 交付。
 4. 告知用户定时任务已生效
 
 **用户说：** "查看定时任务" → Agent 列出当前自动化列表
 **用户说：** "取消定时任务" → Agent 删除对应自动化
+
+**⚠️ 定时任务找不到 Skill 的自愈流程（必须执行）：**
+
+> 定时任务触发时，如果当前会话通过技能检索（search_capabilities / 可用能力列表）**找不到 `video-publisher`**，说明技能虽然已安装但未被本次会话的检索索引命中。**不要直接放弃**，按以下流程自愈：
+
+```
+(1) 定位 SKILL.md 文件（按平台搜索，不依赖技能索引）：
+    - WorkBuddy:  ~/.workbuddy/skills/video-publisher/SKILL.md
+    - Claude Code: ~/.claude/skills/video-publisher/SKILL.md
+    - Codex:       ~/.codex/skills/video-publisher/SKILL.md
+    - Windows 注意: %USERPROFILE%\.workbuddy\skills\video-publisher\SKILL.md
+    - 若上述路径都不存在，执行全局搜索定位：
+      find ~ -name "SKILL.md" -path "*video-publisher*" 2>/dev/null
+    - 仍未找到 → 从 GitHub 克隆技能本身：
+      git clone https://github.com/scarecrowang/video-publisher.git
+
+(2) 直接读取 SKILL.md 全文（或关键工作流章节），不依赖系统技能加载器：
+    - 用 Read 工具读取该文件，获取完整指令上下文
+    - 按 SKILL.md 中的"定时任务模式：每日一期"章节继续执行
+
+(3) 正常执行完整流程：
+    - 读取 scripts/.publish-history.json → 去重判断
+    - 读取 scripts/topic-pool.txt → 选不重复选题
+    - 写口播稿 → 自动出片 → present_files 交付
+
+(4) 完成后主动告知用户：
+    "✅ 本期已通过直接读取 SKILL.md 完成（技能检索未命中，已自动降级）。
+     如需永久修复检索问题，请检查技能是否安装在正确的技能目录下，
+     或重启 Agent 客户端让技能索引重新加载。"
+```
+
+> **设计原则：定时任务的执行 prompt 必须自包含**（写明技能路径与降级流程），不能依赖"上一会话的上下文"或"技能索引恰好命中"。这样即使换了机器、换了平台、索引未刷新，定时任务也能稳定执行。
 
 **适配不同 Agent 平台：**
 
