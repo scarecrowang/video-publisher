@@ -78,6 +78,29 @@
 
 > Agent 会自动检测并安装 ffmpeg，无需手动操作。详见 SKILL.md 第 7 步。
 
+## 安装（关键：必须装到技能目录，否则定时任务检索不到）
+
+**Skill 必须安装到对应 Agent 的技能目录**，而不是任意文件夹。若安装到别处，`search_capabilities` 不会把技能编入索引，定时任务第二天运行时会出现"找不到 skill"。
+
+| 平台 / Agent | 技能目录 |
+|---|---|
+| WorkBuddy（macOS/Linux） | `~/.workbuddy/skills/` |
+| WorkBuddy（Windows） | `%USERPROFILE%\.workbuddy\skills\` |
+| Claude Code | `~/.claude/skills/` |
+| Codex | `~/.codex/skills/` |
+
+安装后自检：
+
+```bash
+# macOS / Linux
+ls ~/.workbuddy/skills/video-publisher/SKILL.md
+
+# Windows（PowerShell）
+ls $env:USERPROFILE\.workbuddy\skills\video-publisher\SKILL.md
+```
+
+> 若刚安装就创建了定时任务，建议重启 Agent 或刷新技能索引后再触发第一次任务。定时任务 prompt 应包含 `video-publisher` 关键词并指向技能文件路径，详见 SKILL.md「定时任务找不到 Skill 的自愈流程」。
+
 ## 仓库结构
 
 ```

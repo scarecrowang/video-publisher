@@ -55,6 +55,29 @@ ffmpeg is required for audio processing in Remotion — **Windows users will get
 
 > See SKILL.md Step 7 for full details. No manual action needed.
 
+## Installation (Important: Must Be in the Skill Directory)
+
+**The Skill MUST be installed into your Agent's skill directory** — not an arbitrary folder. If installed elsewhere, `search_capabilities` will NOT index it, and a scheduled task will fail with "skill not found" the next day.
+
+| Platform / Agent | Skill Directory |
+|---|---|
+| WorkBuddy (macOS/Linux) | `~/.workbuddy/skills/` |
+| WorkBuddy (Windows) | `%USERPROFILE%\.workbuddy\skills\` |
+| Claude Code | `~/.claude/skills/` |
+| Codex | `~/.codex/skills/` |
+
+Self-check after install:
+
+```bash
+# macOS / Linux
+ls ~/.workbuddy/skills/video-publisher/SKILL.md
+
+# Windows (PowerShell)
+ls $env:USERPROFILE\.workbuddy\skills\video-publisher\SKILL.md
+```
+
+> If you created a scheduled task right after installing, restart the Agent / refresh the skill index before the first trigger. Scheduled-task prompts should mention the `video-publisher` keyword and point to the skill file path — see the "self-healing flow" section in SKILL.md.
+
 ## Repository Structure
 
 ```
