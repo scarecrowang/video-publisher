@@ -501,17 +501,17 @@ setup 脚本会自动完成：
 | 检查项 | 检查方法 | 已配置时的行为 | 未配置时的行为 |
 |---|---|---|---|
 | **Pexels API Key** | 检查 remotion 项目 `.env` 中是否包含 `PEXELS_API_KEY` | 正常下载 B-roll 素材，画面丰富 | 自动加 `--no-broll` 跳过 B-roll，只有纯画面 + 配音 + 字幕 |
-| **TTS 配置** | 检查 `.env` 中 `TTS_PROVIDER` | 已配置火山引擎/OpenAI/Azure/Google/ElevenLabs → 真人感配音 | 默认 `auto` 模式，使用平台免费 TTS（机器感，可接受） |
+| **TTS 配置** | 检查 `.env` 中 `TTS_PROVIDER`；并探测本地 MOSS 服务是否可达（`curl http://127.0.0.1:18083/health`） | 已配置火山引擎/OpenAI/Azure/Google/ElevenLabs → 真人感配音；或本地 MOSS 可达 → 真人感免费配音（auto 首选） | 默认 `auto` 模式，本地 MOSS 不可达 → 平台免费 TTS（机器感，可接受） |
 
 **Agent 执行流程：**
 
 ```
 1. 读取 remotion 项目下的 .env 文件（或检查环境变量）
-2. 判断各配置项状态
+2. 判断各配置项状态（TTS 额外探测本地 MOSS：curl /health 超时 1.5s）
 3. 向用户展示检查结果，说明利弊
 4. 询问用户是否确认以当前配置渲染
 5. 用户确认 → 进入渲染步骤
-6. 用户要求配置 → 引导用户注册/填写 Key，再继续
+6. 用户要求配置 → 引导用户注册/填写 Key / 部署本地 MOSS，再继续
 ```
 
 **对话示例：**
@@ -524,8 +524,9 @@ Agent：📋 渲染前环境检查
        │  → 注册：https://www.pexels.com/api/    │
        ├─────────────────────────────────────────┤
        │  TTS 配置        ✅ 已就绪 (auto 模式)  │
-       │  → 使用平台免费 TTS（机器感，可接受）   │
-       │  → 想用真人感？配置 VOLCANO_API_KEY     │
+       │  → 本地 MOSS 可达 → 真人感配音（免 Key）│
+       │  → 或平台免费 TTS（机器感，可接受）     │
+       │  → 想更强真人感？配置 VOLCANO_API_KEY   │
        ├─────────────────────────────────────────┤
        │  ffmpeg          ✅ 已安装               │
        │  Chromium        ✅ 已就绪               │
@@ -539,7 +540,7 @@ Agent：📋 渲染前环境检查
 - 用户说"继续"、"确认"、"直接渲染" → 进入渲染步骤
 - 用户说"帮我配置一下"、"先配置" → 引导用户注册 Pexels / 填写火山引擎 Key，配置完成后再次检查
 - 用户说"不用 B-roll 也行"、"免费 TTS 就行" → 标记为"用户已知晓"，进入渲染步骤
-- **定时任务模式**（自动触发）：跳过此步骤，默认使用免费 TTS + 无 B-roll（`--no-broll`），不打断自动流程
+- **定时任务模式**（自动触发）：跳过此步骤，不打断自动流程；配音默认用 `auto`（本地 MOSS 可达 → 真人感免费配音；否则平台免费 TTS）+ 无 B-roll（`--no-broll`）
 
 ### 第 11 步：一键出片（后台运行，避免超时）
 
@@ -654,32 +655,46 @@ ls -la out/<slug>/<slug>.mp4 2>/dev/null && echo "渲染完成" || echo "渲染�
 
 #### TTS 配音方案
 
-**默认推荐火山引擎·豆包语音合成大模型（Seed TTS）**，真人感强、中文母语效果最佳。同时支持市场上多种常见 TTS 服务，用户可按需选用。
+**auto 默认首选本地 MOSS-TTS-Nano（开源、免 Key、中文真人感）**；不满足时用火山引擎（真人感最强，中文最佳）。两者都缺时落到零配置免费 TTS 兜底。
 
 | 优先级 | 方案 | 平台 | 配置 | 音质 | 费用 |
 |---|---|---|---|---|---|
-| **🥇 默认推荐** | **火山引擎·豆包 Seed TTS** | 全平台 | 需 `VOLCANO_API_KEY` + `VOLCANO_SPEAKER` | 真人感强，中文最佳 | 按量付费，首量免费 |
-| 🥈 | OpenAI TTS | 全平台 | 需 `OPENAI_API_KEY` + `OPENAI_TTS_VOICE` | 真人感，多语言强 | 按字符计费 |
+| **🥇 auto 首选（免 Key）** | **MOSS-TTS-Nano（本地部署）** | 全平台（CPU 即可） | 需一次性部署（见下），无 Key | 真人感，中文标准普通话 | 免费（Apache-2.0） |
+| **🥈 默认推荐** | **火山引擎·豆包 Seed TTS** | 全平台 | 需 `VOLCANO_API_KEY` + `VOLCANO_SPEAKER` | 真人感强，中文最佳 | 按量付费，首量免费 |
+| 🥉 | OpenAI TTS | 全平台 | 需 `OPENAI_API_KEY` + `OPENAI_TTS_VOICE` | 真人感，多语言强 | 按字符计费 |
 | 🥉 | Azure Speech | 全平台 | 需 `AZURE_SPEECH_KEY` + `AZURE_SPEECH_REGION` | 真人感，可定制 | 按量付费 |
 | 🥉 | ElevenLabs | 全平台 | 需 `ELEVENLABS_API_KEY` + `ELEVENLABS_VOICE_ID` | 真人感，多语言 | 免费额度+付费 |
 | 🥉 | Google Cloud TTS | 全平台 | 需 `GOOGLE_TTS_CREDENTIALS` | 真人感，多语言 | 按字符计费 |
-| 🆓 | 免费 TTS（零配置） | macOS / Windows / Linux | **零配置**，默认自动按平台选择 | 机器感，可接受 | 免费 |
+| 🆓 | 免费 TTS（最后兜底） | macOS / Windows / Linux | **零配置**，仅当 MOSS 与云 Key 都缺时 | 机器感，可接受 | 免费 |
 
+> **MOSS-TTS-Nano 说明（推荐理由）**：开源 Apache-2.0，0.1B 参数可纯 CPU 实时推理，内置中文标准普通话，可商用；3 秒参考音频可做语音克隆（给品牌固声线）。音质为"实时档真人的"，强于系统合成音、略逊火山 Seed 旗舰。
+> **部署（一次性，约 5 分钟下载模型，之后常驻秒开）**：
+> ```bash
+> git clone https://github.com/OpenMOSS/MOSS-TTS-Nano.git && cd MOSS-TTS-Nano
+> pip install -r requirements.txt && pip install -e .   # Windows 遇 pynini 安装失败请先按 Issue #6 配匹配平台 wheel
+> moss-tts-nano serve    # 常驻服务，默认 http://127.0.0.1:18083
+> ```
+> auto 模式会自动探测该服务，可达即用 moss；可用 `MOSS_PROMPT_AUDIO=<参考音频>` 让每期沿用同一把声线。
 > **火山引擎推荐理由**：中文合成效果业内领先，Seed TTS 2.0 模型自然度极高，且有免费试用额度。
-> 注册地址：https://console.volcengine.com/audio  → 语音合成 → 创建应用获取 API Key。
+> 注册地址：https://console.volcengine.com/audio → 语音合成 → 创建应用获取 API Key。
 
 **各方案配置参数一览：**
 
 | 方案 | TTS_PROVIDER 值 | 必填环境变量 | 可选环境变量 |
 |---|---|---|---|
+| MOSS-TTS-Nano（本地） | `moss` | 本地服务已启动（默认 127.0.0.1:18083） | `MOSS_TTS_BASE_URL`, `MOSS_PROMPT_AUDIO`（参考音频克隆） |
 | 火山引擎·Seed TTS | `volcano` | `VOLCANO_API_KEY`, `VOLCANO_SPEAKER` | `VOLCANO_RESOURCE_ID`, `VOLCANO_SAMPLE_RATE` |
 | OpenAI TTS | `openai` | `OPENAI_API_KEY` | `OPENAI_TTS_VOICE`（默认 alloy）, `OPENAI_TTS_MODEL`（默认 tts-1） |
 | Azure Speech | `azure` | `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION` | `AZURE_SPEECH_VOICE`（默认 zh-CN-XiaoxiaoNeural） |
 | ElevenLabs | `elevenlabs` | `ELEVENLABS_API_KEY`, `ELEVENLABS_VOICE_ID` | — |
 | Google Cloud TTS | `google` | `GOOGLE_TTS_CREDENTIALS`（JSON 路径或内容） | `GOOGLE_TTS_VOICE`（默认 zh-CN-Standard-A） |
-| 免费 TTS（auto） | `auto` | 零配置 | `TTS_VOICE`, `TTS_RATE` |
+| 免费 TTS（auto 兜底） | `auto` | 零配置 | `TTS_VOICE`, `TTS_RATE` |
 
-**免费 TTS 各平台详情（零配置兜底）：**
+> `auto` 选路逻辑：MOSS 服务可达 → `moss`；否则按平台选免费 TTS（macOS→say, Windows→powershell, Linux→espeak）。
+> **推荐使用本地 MOSS（免 Key 真人感）**，或配置火山引擎（`TTS_PROVIDER=volcano`）获得更强真人感。
+> 其他云端 TTS 服务（OpenAI / Azure / Google / ElevenLabs）同样支持，按需配置。
+
+**免费 TTS 各平台详情（仅当 MOSS 与云 Key 都缺时的最后兜底）：**
 
 | 平台 | 引擎 | 零配置？ | 需安装？ |
 |---|---|---|---|
@@ -689,8 +704,8 @@ ls -la out/<slug>/<slug>.mp4 2>/dev/null && echo "渲染完成" || echo "渲染�
 | Linux (CentOS/RHEL) | `espeak-ng` | ❌ `sudo yum install espeak-ng -y` 或 `sudo dnf install espeak-ng -y` | 一次安装，后续零配置 |
 | Linux (Arch) | `espeak-ng` | ❌ `sudo pacman -S espeak-ng --noconfirm` | 一次安装，后续零配置 |
 
-> 默认 TTS_PROVIDER 设为 `auto`（零配置即可用免费 TTS）。
-> **推荐使用火山引擎（`TTS_PROVIDER=volcano`）获得真人感中文配音**，在 `.env` 中填入 `VOLCANO_API_KEY` 和 `VOLCANO_SPEAKER` 即可。
+> 默认 TTS_PROVIDER 设为 `auto`（本地 MOSS 可达 → 真人感免费配音；否则平台免费 TTS 兜底，均零配置）。
+> **推荐真人感方案（两者任选其一）**：① 本地 MOSS-TTS-Nano（免 Key，见上）② 火山引擎（`TTS_PROVIDER=volcano`），在 `.env` 中填入 `VOLCANO_API_KEY` 和 `VOLCANO_SPEAKER` 即可。
 > 其他云端 TTS 服务（OpenAI / Azure / Google / ElevenLabs）同样支持，按需配置。
 
 #### B-roll 素材配置

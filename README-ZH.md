@@ -57,15 +57,15 @@
 | 教程型 | 问题引入 + 分步式主体 | How-to、操作指南 |
 | 自定义 | 灵活适配 | 用户描述结构 |
 
-## 免费 TTS — 不需要 API Key
+## 本地真人 TTS（免 API Key）— 推荐
 
-| 平台 | 引擎 | 配置 |
-|---|---|---|
-| macOS | `say` 命令 | 零配置 |
-| Windows | PowerShell `System.Speech` | 零配置 |
-| Linux | `espeak-ng` | `sudo apt install espeak-ng` |
+| 方案 | 说明 |
+|---|---|
+| **MOSS-TTS-Nano（本地部署，auto 首选）** | 开源 Apache-2.0 · CPU 实时 · 中文标准普通话 · 免 Key。一次性部署：`git clone https://github.com/OpenMOSS/MOSS-TTS-Nano.git && pip install -r requirements.txt && pip install -e .` 然后 `moss-tts-nano serve`（默认 http://127.0.0.1:18083，首启约 5 分钟下载模型）。可选 `MOSS_PROMPT_AUDIO=<参考音频>` 做 3 秒语音克隆 |
+| 火山引擎 Seed TTS | 真人感最强、中文最佳。`.env` 填 `TTS_PROVIDER=volcano` + `VOLCANO_API_KEY` + `VOLCANO_SPEAKER`（按量付费） |
+| 免费 TTS（最后兜底） | 平台自带：macOS `say` / Windows PowerShell `System.Speech`（均零配置）/ Linux `espeak-ng`（`sudo apt install espeak-ng`） |
 
-默认 `TTS_PROVIDER=auto` 自动检测平台。想用真人感中文配音，在 `.env` 中设为 `TTS_PROVIDER=volcano`。
+> 默认 `TTS_PROVIDER=auto`：本地 MOSS 服务可达 → 用 MOSS（真人感、免 Key）；否则回落平台免费 TTS。
 
 ## 出片前置条件
 
