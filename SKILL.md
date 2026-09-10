@@ -674,7 +674,7 @@ ls -la out/<slug>/<slug>.mp4 2>/dev/null && echo "渲染完成" || echo "渲染�
 > ```
 > 手动画兜底：`git clone https://github.com/OpenMOSS/MOSS-TTS-Nano.git && cd MOSS-TTS-Nano` → `pip install -r requirements.txt && pip install -e .`（Windows 遇 pynini 失败先按 Issue #6 配匹配平台 wheel）→ `moss-tts-nano serve`。
 > auto 模式会自动探测该服务，可达即用 moss；可用 `MOSS_PROMPT_AUDIO=<参考音频>` 让每期沿用同一把声线。
-> **内置音色**：`MOSS_DEMO_ID` 选官方 demo 声线，默认 `demo-5`（稳重讲课/纪录片旁白）。常用：`demo-2` 温柔治愈女声（心理科普/晚安）、`demo-1` 正式商务（课程片头）、`demo-3` 台湾腔、`demo-4` 京味、`demo-6` 情绪饱满女声（口播金句）；demo-7~29 为各国新闻声线（对应语言）。
+> **内置音色**：`MOSS_DEMO_ID` 选官方 demo 声线，默认 `demo-1`（正式商务感，适合案例讲解/口播）。常用：`demo-5` 稳重讲课/纪录片旁白、`demo-2` 温柔治愈女声（心理科普/晚安）、`demo-3` 台湾腔、`demo-4` 京味、`demo-6` 情绪饱满女声（口播金句）；demo-7~29 为各国新闻声线（对应语言）。
 > **火山引擎推荐理由**：中文合成效果业内领先，Seed TTS 2.0 模型自然度极高，且有免费试用额度。
 > 注册地址：https://console.volcengine.com/audio → 语音合成 → 创建应用获取 API Key。
 
@@ -682,7 +682,7 @@ ls -la out/<slug>/<slug>.mp4 2>/dev/null && echo "渲染完成" || echo "渲染�
 
 | 方案 | TTS_PROVIDER 值 | 必填环境变量 | 可选环境变量 |
 |---|---|---|---|
-| MOSS-TTS-Nano（本地） | `moss` | 本地服务已启动（默认 127.0.0.1:18083） | `MOSS_TTS_BASE_URL`, `MOSS_DEMO_ID`（音色，默认 demo-5）, `MOSS_PROMPT_AUDIO`（参考音频克隆） |
+| MOSS-TTS-Nano（本地） | `moss` | 本地服务已启动（默认 127.0.0.1:18083） | `MOSS_TTS_BASE_URL`, `MOSS_DEMO_ID`（音色，默认 demo-1）, `MOSS_PROMPT_AUDIO`（参考音频克隆） |
 | 火山引擎·Seed TTS | `volcano` | `VOLCANO_API_KEY`, `VOLCANO_SPEAKER` | `VOLCANO_RESOURCE_ID`, `VOLCANO_SAMPLE_RATE` |
 | OpenAI TTS | `openai` | `OPENAI_API_KEY` | `OPENAI_TTS_VOICE`（默认 alloy）, `OPENAI_TTS_MODEL`（默认 tts-1） |
 | Azure Speech | `azure` | `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION` | `AZURE_SPEECH_VOICE`（默认 zh-CN-XiaoxiaoNeural） |
