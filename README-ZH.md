@@ -61,7 +61,7 @@
 
 | 方案 | 说明 |
 |---|---|
-| **MOSS-TTS-Nano（本地部署，auto 首选）** | 开源 Apache-2.0 · CPU 实时 · 中文标准普通话 · 免 Key。一次性部署：`git clone https://github.com/OpenMOSS/MOSS-TTS-Nano.git && pip install -r requirements.txt && pip install -e .` 然后 `moss-tts-nano serve`（默认 http://127.0.0.1:18083，首启约 5 分钟下载模型）。可选 `MOSS_PROMPT_AUDIO=<参考音频>` 做 3 秒语音克隆 |
+| **MOSS-TTS-Nano（本地部署，auto 首选）** | 开源 Apache-2.0 · CPU 实时 · 中文标准普通话 · 免 Key。**一键部署**：`node scripts/setup-moss.mjs`（或 `npm run setup` 第 7 步）自动完成 clone → venv → 装依赖 → 后台启动 → 健康检查，未装则自动装、已在跑则跳过；首启约 5 分钟下载模型。手动画兜底：`git clone https://github.com/OpenMOSS/MOSS-TTS-Nano.git && pip install -r requirements.txt && pip install -e .` 然后 `moss-tts-nano serve`（默认 http://127.0.0.1:18083）。可选 `MOSS_PROMPT_AUDIO=<参考音频>` 做 3 秒语音克隆 |
 | 火山引擎 Seed TTS | 真人感最强、中文最佳。`.env` 填 `TTS_PROVIDER=volcano` + `VOLCANO_API_KEY` + `VOLCANO_SPEAKER`（按量付费） |
 | 免费 TTS（最后兜底） | 平台自带：macOS `say` / Windows PowerShell `System.Speech`（均零配置）/ Linux `espeak-ng`（`sudo apt install espeak-ng`） |
 

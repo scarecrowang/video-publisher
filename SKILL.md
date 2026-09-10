@@ -501,7 +501,7 @@ setup 脚本会自动完成：
 | 检查项 | 检查方法 | 已配置时的行为 | 未配置时的行为 |
 |---|---|---|---|
 | **Pexels API Key** | 检查 remotion 项目 `.env` 中是否包含 `PEXELS_API_KEY` | 正常下载 B-roll 素材，画面丰富 | 自动加 `--no-broll` 跳过 B-roll，只有纯画面 + 配音 + 字幕 |
-| **TTS 配置** | 检查 `.env` 中 `TTS_PROVIDER`；并探测本地 MOSS 服务是否可达（`curl http://127.0.0.1:18083/health`） | 已配置火山引擎/OpenAI/Azure/Google/ElevenLabs → 真人感配音；或本地 MOSS 可达 → 真人感免费配音（auto 首选） | 默认 `auto` 模式，本地 MOSS 不可达 → 平台免费 TTS（机器感，可接受） |
+| **TTS 配置** | 检查 `.env` 中 `TTS_PROVIDER`；并探测本地 MOSS 服务是否可达（`curl http://127.0.0.1:18083/health`） | 已配置火山引擎/OpenAI/Azure/Google/ElevenLabs → 真人感配音；或本地 MOSS 可达 → 真人感免费配音（auto 首选） | 默认 `auto` 模式，本地 MOSS 不可达 → 自动建议一键部署 `node scripts/setup-moss.mjs`（未部署场景：引导运行后即得真人感免费配音）；未部署也不想装 → 平台免费 TTS（机器感，可接受） |
 
 **Agent 执行流程：**
 
@@ -511,7 +511,7 @@ setup 脚本会自动完成：
 3. 向用户展示检查结果，说明利弊
 4. 询问用户是否确认以当前配置渲染
 5. 用户确认 → 进入渲染步骤
-6. 用户要求配置 → 引导用户注册/填写 Key / 部署本地 MOSS，再继续
+6. 用户要求配置 → 引导用户注册/填写 Key / 运行 `node scripts/setup-moss.mjs` 一键部署本地 MOSS，再继续
 ```
 
 **对话示例：**
@@ -668,12 +668,11 @@ ls -la out/<slug>/<slug>.mp4 2>/dev/null && echo "渲染完成" || echo "渲染�
 | 🆓 | 免费 TTS（最后兜底） | macOS / Windows / Linux | **零配置**，仅当 MOSS 与云 Key 都缺时 | 机器感，可接受 | 免费 |
 
 > **MOSS-TTS-Nano 说明（推荐理由）**：开源 Apache-2.0，0.1B 参数可纯 CPU 实时推理，内置中文标准普通话，可商用；3 秒参考音频可做语音克隆（给品牌固声线）。音质为"实时档真人的"，强于系统合成音、略逊火山 Seed 旗舰。
-> **部署（一次性，约 5 分钟下载模型，之后常驻秒开）**：
+> **部署（自动）**：项目 `scripts/setup-moss.mjs` 一键完成「探测 → clone → venv → 装依赖 → 后台常驻启动 → 健康检查」；或直接运行 `node scripts/setup.mjs`（第 7 步会自动探测/部署 MOSS）。已部署在跑则直接跳过。首次下载模型约 5 分钟，之后常驻秒开。
 > ```bash
-> git clone https://github.com/OpenMOSS/MOSS-TTS-Nano.git && cd MOSS-TTS-Nano
-> pip install -r requirements.txt && pip install -e .   # Windows 遇 pynini 安装失败请先按 Issue #6 配匹配平台 wheel
-> moss-tts-nano serve    # 常驻服务，默认 http://127.0.0.1:18083
+> node scripts/setup-moss.mjs        # 一键部署 + 启动（未装则自动装，已在跑则跳过）
 > ```
+> 手动画兜底：`git clone https://github.com/OpenMOSS/MOSS-TTS-Nano.git && cd MOSS-TTS-Nano` → `pip install -r requirements.txt && pip install -e .`（Windows 遇 pynini 失败先按 Issue #6 配匹配平台 wheel）→ `moss-tts-nano serve`。
 > auto 模式会自动探测该服务，可达即用 moss；可用 `MOSS_PROMPT_AUDIO=<参考音频>` 让每期沿用同一把声线。
 > **火山引擎推荐理由**：中文合成效果业内领先，Seed TTS 2.0 模型自然度极高，且有免费试用额度。
 > 注册地址：https://console.volcengine.com/audio → 语音合成 → 创建应用获取 API Key。
